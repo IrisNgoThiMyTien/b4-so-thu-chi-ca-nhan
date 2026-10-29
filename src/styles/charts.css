@@ -1,0 +1,280 @@
+/* Module M4 – Biểu đồ tổng quan: carousel 4 biểu đồ, chấm chỉ báo, tooltip, bảng số liệu. DESIGN §2.3, §6.3, §8, §10.9.
+   Cần nạp tokens.css, entry.css (nút) và home.css (.sr-only) trước. Mọi màu đi qua token. */
+
+.charts,
+.charts * { box-sizing: border-box; }
+.charts [hidden] { display: none !important; }
+
+.charts {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  overflow: hidden;
+}
+
+/* ---------- Carousel (§6.3): cuộn ngang có điểm dừng, ‹ › chỉ hiện trên laptop ---------- */
+.charts__stage { display: flex; align-items: stretch; }
+.charts__track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden; /* chiều cao khớp biểu đồ đang xem (charts.js), biểu đồ cao hơn không làm hiện thanh cuộn dọc */
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  transition: height var(--dur-base) var(--ease-out);
+}
+.charts__track::-webkit-scrollbar { display: none; }
+
+.chart {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.charts__nav { display: none; flex: none; align-self: center; margin: 0 var(--space-1); color: var(--text-muted); }
+.charts__nav:disabled { opacity: .4; cursor: not-allowed; }
+.charts__nav:disabled:hover { background: transparent; }
+
+/* ---------- Tiêu đề từng biểu đồ + nút xem dạng bảng (§10.9) ---------- */
+.chart__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.chart__titles { min-width: 0; padding-top: var(--space-1); }
+.chart__title { margin: 0; font-size: var(--fs-h2); line-height: var(--lh-h2); font-weight: 600; }
+.chart__desc { margin: 0; color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-small); font-weight: 400; }
+.chart__toggle { flex: none; margin: calc(var(--space-1) * -1) calc(var(--space-2) * -1) 0 0; color: var(--text-muted); }
+.chart__toggle[aria-pressed="true"] { color: var(--primary); background: var(--primary-soft); }
+.chart__body { padding-top: var(--space-2); }
+
+/* ---------- Chú giải Thu / Chi ---------- */
+.chart-legend {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0 0 var(--space-1);
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+.chart-legend li { display: inline-flex; align-items: center; gap: var(--space-2); }
+.chart-legend__swatch { width: 10px; height: 10px; border-radius: 3px; }
+.chart-legend__swatch--income { background: var(--income); }
+.chart-legend__swatch--expense { background: var(--expense); }
+
+/* ---------- Biểu đồ cột / đường: trục dọc cố định bên trái, vùng vẽ cuộn ngang khi hẹp ---------- */
+.chart__cartesian { display: flex; align-items: flex-start; min-width: 0; }
+/* không chặn chuyển tiếp cuộn (overscroll-behavior): cuộn hết biểu đồ ngày rồi vuốt tiếp thì chuyển sang biểu đồ khác */
+.chart__scroll { flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.chart__wrap { position: relative; height: 172px; }
+.chart-svg { display: block; overflow: visible; }
+.chart-axis { flex: none; }
+
+.chart-label {
+  fill: var(--text-muted);
+  font-family: var(--font);
+  font-size: var(--fs-small);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.chart-grid__line { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; }
+.chart-grid__zero { stroke-width: 2; }
+.chart-band { fill: var(--surface-2); opacity: 0; transition: opacity var(--dur-fast) var(--ease-out); }
+.chart-band.is-selected { opacity: 1; }
+.chart-bar--income { fill: var(--income); }
+.chart-bar--expense { fill: var(--expense); }
+.chart-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+
+.chart-line { stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chart-area { fill: color-mix(in srgb, var(--primary) 12%, transparent); stroke: none; }
+.chart-marker { fill: var(--primary); stroke: var(--surface); stroke-width: 2; }
+.chart-marker--sel { opacity: 0; }
+.chart-marker--sel.is-selected { opacity: 1; }
+
+/* ---------- Vành khuyên + chú giải (§6.3) ---------- */
+.donut { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding-bottom: var(--space-2); }
+.donut__ring { position: relative; flex: none; }
+.chart-donut__track { stroke: var(--surface-2); }
+.chart-slice { cursor: pointer; pointer-events: stroke; transition: opacity var(--dur-fast) var(--ease-out); }
+.chart-donut.has-selection .chart-slice:not(.is-selected) { opacity: .4; }
+.donut__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.donut__label { color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-small); }
+.donut__total { font-size: var(--fs-body); line-height: var(--lh-body); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.donut__legend { width: 100%; margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--space-6); }
+.donut__item { display: flex; align-items: center; gap: var(--space-2); min-height: 24px; font-size: var(--fs-small); line-height: var(--lh-small); }
+.donut__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.donut__pct { font-weight: 600; font-variant-numeric: tabular-nums; }
+.donut__amount { min-width: 4.5em; text-align: right; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.donut__empty { margin: 0; color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-small); }
+.dot { display: inline-block; flex: none; vertical-align: middle; width: 10px; height: 10px; border-radius: var(--radius-full); background: var(--cat-color, var(--cat-other)); }
+
+/* ---------- Tooltip (§6.3): nền --surface, --shadow-2, bo --radius-sm ---------- */
+.chart-tip {
+  position: absolute;
+  z-index: 1;
+  width: max-content;
+  max-width: 240px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: chart-tip-in var(--dur-fast) var(--ease-out);
+}
+.chart-tip[data-placement="above"] { transform: translate(-50%, -100%); }
+.chart-tip__title { margin-bottom: 2px; font-weight: 600; }
+.chart-tip__row { display: flex; justify-content: space-between; gap: var(--space-3); }
+.chart-tip__label { color: var(--text-muted); white-space: nowrap; }
+.chart-tip__value { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chart-tip__value--income { color: var(--income-text); }
+.chart-tip__value--expense { color: var(--expense-text); }
+
+/* ---------- Bảng số liệu (§10.9) ---------- */
+.chart__table-wrap { max-height: 240px; overflow: auto; overscroll-behavior: contain; }
+.chart-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface); font-size: var(--fs-body); line-height: var(--lh-body); }
+.chart-table th,
+.chart-table td { height: 40px; padding: 0 var(--space-2); border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.chart-table .col-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 600;
+}
+.chart-table .col-head--num,
+.chart-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.chart-table .row-head { color: var(--text); font-weight: 400; }
+.chart-table .row-name { margin-left: var(--space-2); }
+.chart-table .num { font-weight: 400; }
+.num--income { color: var(--income-text); }
+.num--expense { color: var(--expense-text); }
+.num--plain { color: var(--text); }
+.chart-table tfoot th,
+.chart-table tfoot td { border-top: 2px solid var(--border); border-bottom: 0; font-weight: 600; }
+.chart-table__empty td { color: var(--text-muted); text-align: center; white-space: normal; }
+.num__compact { display: none; }
+
+/* ---------- Chấm chỉ báo (§6.3): đang chọn kéo dài thành viên thuốc 16×6 ---------- */
+.charts__dots { display: flex; justify-content: center; gap: var(--space-2); margin-top: calc(var(--space-2) * -1); }
+.charts__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.charts__dot:active { transform: scale(.97); }
+.charts__pip {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--text-muted);
+  opacity: .5;
+  transition: width var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.charts__dot.is-active .charts__pip { width: 16px; background: var(--primary); opacity: 1; }
+
+.charts button:focus-visible,
+.charts .chart__scroll:focus-visible,
+.charts .chart__table-wrap:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- Hiệu ứng (§8): cột mọc từ đáy, vành khuyên quay mở, đường vẽ dần; đổi tháng mờ dần ---------- */
+.chart-plot.is-entering .chart-bar { transform-box: fill-box; transform-origin: 50% 100%; animation: chart-bar-grow 500ms var(--ease-out) both; }
+.chart-plot.is-entering .chart-line,
+.chart-plot.is-entering .chart-area { animation: chart-line-reveal 600ms var(--ease-out) both; }
+.chart-donut.is-entering .chart-slice { animation: chart-arc-open 600ms var(--ease-out) both; }
+.charts.is-updating .charts__track { animation: chart-fade var(--dur-base) var(--ease-out); }
+@keyframes chart-bar-grow { from { transform: scaleY(0); } }
+@keyframes chart-line-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes chart-arc-open { from { stroke-dasharray: 0 100; } }
+@keyframes chart-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes chart-tip-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Điện thoại (< 640px): số trong bảng dài thì rút gọn, chạm hàng để xem đầy đủ ---------- */
+@media (max-width: 639.98px) {
+  .chart-table--dense .num__full,
+  .chart-table .num.is-long .num__full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .chart-table--dense .num__compact,
+  .chart-table .num.is-long .num__compact { display: inline; }
+  .chart-table--dense tr.is-expanded .num__full {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+  }
+  .chart-table--dense tr.is-expanded .num__compact { display: none; }
+  .chart-table--dense tr.is-expanded > * { background: var(--surface-2); }
+  .donut__amount .num__full { display: none; }
+  .donut__amount .num__compact { display: inline; }
+}
+
+/* ---------- Laptop (≥ 640px): nút ‹ ›, hàng bảng cao 36 + rê chuột ---------- */
+@media (min-width: 640px) {
+  .charts__nav { display: inline-flex; }
+  .chart { padding: var(--space-4) var(--space-2) var(--space-2); }
+  .chart-table th,
+  .chart-table td { height: 36px; }
+  .donut__legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 640px) and (hover: hover) {
+  .chart-table tbody tr:hover > * { background: var(--surface-2); }
+}
+
+/* ---------- Giảm chuyển động (§8): bỏ trượt / phóng / mọc, chỉ giữ mờ dần tức thời ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .charts__track { scroll-behavior: auto; transition: none; }
+  .chart-plot.is-entering .chart-bar,
+  .chart-plot.is-entering .chart-line,
+  .chart-plot.is-entering .chart-area,
+  .chart-donut.is-entering .chart-slice { animation: none; }
+  .charts.is-updating .charts__track,
+  .chart-tip { animation: chart-fade 100ms linear; }
+  .chart-band,
+  .chart-slice,
+  .charts__pip,
+  .charts__dot { transition: none; transform: none; }
+}

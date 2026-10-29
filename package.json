@@ -1,0 +1,14 @@
+{
+  "name": "so-thu-chi-nhap-lieu",
+  "version": "1.0.0",
+  "description": "Module Nhập liệu thu chi của ứng dụng Sổ Thu Chi",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test \"tests/**/*.test.js\""
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0"
+  }
+}

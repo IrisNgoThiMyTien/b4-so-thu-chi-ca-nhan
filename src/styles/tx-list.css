@@ -1,0 +1,153 @@
+/* Module M3 – Danh sách giao dịch. DESIGN §6.4 (dòng, nhóm ngày, vuốt/hover), §3 (chữ), §8 (chuyển động).
+   Cần nạp tokens.css, entry.css và home.css trước. */
+
+.tx-list,
+.tx-list * { box-sizing: border-box; }
+
+.tx-list { display: flex; flex-direction: column; gap: var(--space-4); color: var(--text); }
+
+/* ---------- Nhóm theo ngày ---------- */
+.tx-day__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-1) var(--space-2);
+}
+.tx-day__title { margin: 0; font-size: var(--fs-h2); line-height: var(--lh-h2); font-weight: 600; }
+.tx-day__sum {
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tx-day__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+
+/* ---------- Dòng giao dịch (cao ≥ 56) ---------- */
+.tx {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background: var(--danger);
+  transition: height var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.tx:last-child { border-bottom: 0; }
+.tx.is-removing { opacity: 0; border-bottom-width: 0; }
+
+.tx__body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  touch-action: pan-y; /* cuộn dọc do trình duyệt lo, vuốt ngang do mình lo */
+  transition: transform var(--dur-base) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.tx.is-dragging .tx__body { transition: none; }
+.tx__body:hover { background: var(--surface-2); }
+
+.tx__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tx__main:active { background: var(--surface-2); }
+.tx__main:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+.tx__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--cat-color, var(--cat-other)) 15%, var(--surface));
+  color: var(--cat-color, var(--cat-other));
+}
+
+.tx__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tx__name { font-size: var(--fs-body); line-height: var(--lh-body); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tx__sub { color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tx__amount {
+  flex: none;
+  margin-left: auto;
+  padding-left: var(--space-2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tx__amount--income { color: var(--income-text); }
+.tx__amount--expense { color: var(--expense-text); }
+
+/* Nút Xoá nằm phía sau, lộ ra khi vuốt trái */
+.tx__delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  border: 0;
+  background: var(--danger);
+  color: var(--on-danger);
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tx__delete:focus-visible { outline: 2px solid var(--focus); outline-offset: -4px; }
+.tx:not(.is-open):not(.is-dragging) .tx__delete { visibility: hidden; }
+
+/* ✎ 🗑 cho laptop: hiện khi rê chuột hoặc khi focus bằng bàn phím */
+.tx__tools { display: none; }
+@media (hover: hover) {
+  .tx__tools {
+    display: flex;
+    align-items: center;
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+  }
+  .tx__body:hover .tx__tools,
+  .tx__body:focus-within .tx__tools { max-width: 96px; opacity: 1; padding-right: var(--space-2); }
+  .tx__tool-delete { color: var(--danger); }
+  .tx__tool-delete:hover { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); }
+  .tx__delete { display: none; }
+}
+
+.tx-list__more { align-self: center; }
+
+/* ---------- Giảm chuyển động (§8) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .tx,
+  .tx__body,
+  .tx__tools { transition: none !important; }
+}

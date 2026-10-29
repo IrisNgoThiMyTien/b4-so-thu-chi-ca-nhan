@@ -1,0 +1,296 @@
+/* Module M5 – Tìm kiếm & Lọc: ô tìm, nút Lọc, chip bộ lọc, thanh tóm tắt, bảng lọc. DESIGN §6.4, §9.2, §10.4.
+   Cần nạp tokens.css, entry.css (nút, chip, segmented), home.css (keyframes, .sr-only) và tx-list.css trước. */
+
+.search,
+.search *,
+.filter-panel,
+.filter-panel * { box-sizing: border-box; }
+
+.search { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; color: var(--text); }
+.search__list { min-width: 0; }
+.search__head { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.search__bar { display: flex; align-items: center; gap: var(--space-2); }
+
+/* ---------- Ô tìm (nền --surface-2, bo --radius-full, cao 44) ---------- */
+.search__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.search__field:hover { border-color: var(--text-muted); }
+.search__field:focus-within { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
+.search__icon { flex: none; display: grid; place-items: center; width: 40px; color: var(--text-muted); }
+.search__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.search__input,
+.search__input:focus,
+.search__input:focus-visible { outline: none; }
+.search__input::placeholder { color: var(--text-muted); opacity: 1; }
+.search__input::-webkit-search-cancel-button,
+.search__input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
+.search__clear {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -1px -1px -1px 0; /* bù viền 1px để vùng chạm đủ 44×44 */
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.search__clear[hidden] { display: none; }
+.search__clear:hover { color: var(--text); }
+
+/* ---------- Nút Lọc (nút phụ cao 44; điện thoại chỉ biểu tượng + huy hiệu) ---------- */
+.search__filter {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.search__filter:hover { background: var(--surface-2); }
+.search__filter:active { transform: scale(.97); }
+.search__filter.is-active { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.search__filter-text { display: none; }
+/* Huy hiệu tròn 16px: chữ 11px là ngoại lệ có chủ đích so với mức tối thiểu 13px (vừa vòng tròn 16px, số bộ lọc luôn kèm nhãn aria) */
+.search__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.search__badge[hidden] { display: none; }
+
+/* ---------- Chip bộ lọc đang bật (cao 32, nền --surface-2, cuộn ngang nếu dài) ---------- */
+.search__chips {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 6px 8px 6px 0; /* 32 + 12 = 44: vùng chạm của nút ✕ không bị cắt */
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.search__chips::-webkit-scrollbar { display: none; }
+.search__chips[hidden] { display: none; }
+.fchip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 2px 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fchip__label { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.fchip__x {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: var(--space-1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.fchip__x::after { content: ""; position: absolute; inset: -10px; } /* mở rộng vùng chạm thành 44×44 */
+.fchip__x:hover { background: var(--border); color: var(--text); }
+
+/* ---------- Thanh tóm tắt: "8 kết quả · −1.240.000 ₫" ---------- */
+.search__summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.search__summary[hidden] { display: none; }
+.search__net--income { color: var(--income-text); }
+.search__net--expense { color: var(--expense-text); }
+
+/* ---------- Không có kết quả (§9.2) ---------- */
+.search__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.search__empty[hidden] { display: none; }
+.search__empty-art { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-muted); }
+.search__empty-title { margin: 0; color: var(--text-muted); }
+
+/* ---------- Làm nổi từ khoá trong ghi chú (M3 vẽ <mark>) ----------
+   DESIGN: "chữ giữ nguyên màu". Dòng phụ dùng --text-muted, trên nền làm nổi + nền hover --surface-2 (sáng) chỉ đạt 4,37:1,
+   nên đoạn khớp dùng --text (≥ 12:1) để luôn đọc được. */
+.tx__mark {
+  padding: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--text);
+}
+
+/* ---------- Bảng lọc: bảng trượt (điện thoại) ---------- */
+.filter-panel[hidden] { display: none; }
+.filter-panel :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.filter-panel__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  background: var(--scrim);
+  animation: fade-in var(--dur-base) var(--ease-out);
+}
+.filter-panel__panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  max-height: 80dvh;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-3);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  animation: sheet-in var(--dur-slow) var(--ease-out);
+}
+.fp__handle { flex: none; width: 36px; height: 4px; margin: var(--space-2) auto 0; border-radius: var(--radius-full); background: var(--border); }
+.fp__head { flex: none; display: flex; align-items: center; justify-content: space-between; padding: var(--space-1) var(--space-2) 0 var(--space-4); }
+.fp__title { margin: 0; font-size: var(--fs-h1); line-height: var(--lh-h1); font-weight: 600; }
+.fp__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.fp__section { display: flex; flex-direction: column; gap: var(--space-2); }
+.fp__section[hidden] { display: none; }
+.fp__label { margin: 0; font-size: var(--fs-h2); line-height: var(--lh-h2); font-weight: 600; }
+.fp__sub { margin: 0 0 var(--space-2); color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-small); font-weight: 500; }
+.fp__group + .fp__group { margin-top: var(--space-3); }
+.fp__seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fp__seg .segmented__btn[aria-checked="true"] { background: var(--primary); color: var(--on-primary); } /* mục chọn nền --primary */
+.chip--cat .icon { color: var(--cat-color, var(--text-muted)); }
+.fp__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.fp__apply { flex: 1; min-width: 0; }
+.fp__clear { flex: none; }
+.fp__clear.is-disabled,
+.fp__clear.is-disabled:hover { background: transparent; color: var(--text-muted); cursor: not-allowed; }
+
+/* ---------- Laptop / máy tính bảng (≥ 640px) ---------- */
+@media (min-width: 640px) {
+  /* Cột danh sách cuộn riêng (home.css): thanh tìm dính đầu cột */
+  .search__head { position: sticky; top: 0; z-index: 1; padding: 2px 2px var(--space-1); background: var(--bg); }
+  .search__filter { padding: 0 var(--space-4); }
+  .search__filter-text { display: inline; }
+  .search__badge { position: static; }
+
+  /* Popover 360px neo dưới nút Lọc thay cho bảng trượt */
+  .filter-panel__scrim { display: none; }
+  .filter-panel__panel {
+    left: var(--fp-left, 16px);
+    top: var(--fp-top, 64px);
+    right: auto;
+    bottom: auto;
+    width: 360px;
+    max-height: calc(100dvh - var(--fp-top, 64px) - var(--space-4));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+    animation: pop-in var(--dur-base) var(--ease-out);
+  }
+  .fp__handle { display: none; }
+  .fp__head { padding-top: var(--space-2); }
+}
+
+/* ---------- Giảm chuyển động (§8) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel__panel,
+  .filter-panel__scrim { animation: fade-in 100ms linear !important; }
+  .search__field,
+  .search__filter,
+  .fchip__x { transition: none !important; transform: none !important; }
+}

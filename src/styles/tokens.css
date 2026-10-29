@@ -1,0 +1,175 @@
+/* Design tokens — lấy nguyên từ DESIGN.md §2–§5, §8. Sáng mặc định; tối theo hệ thống hoặc data-theme. */
+
+:root {
+  /* §2.1 Nền & chữ */
+  --bg: #F6F7F9;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0F3;
+  --border: #E1E4E9;
+  --text: #14181F;
+  --text-muted: #5B6472;
+
+  /* §2.2 Ngữ nghĩa */
+  --primary: #2F6FED;
+  --on-primary: #FFFFFF;
+  --income: #0E9F6E;
+  --expense: #E5484D;
+  --warning: #D98A00;
+  --danger: #C93036;
+  --focus: #2F6FED;
+
+  /* Bổ sung (không có trong DESIGN): chữ trên nền thu/chi/nguy hiểm, đạt tương phản >= 4.5:1 */
+  --income-text: #0B7A56; /* thu/chi dùng cho chữ nhỏ (< 18.66px đậm): đạt ≥ 4.5:1 trên --surface và --surface-2 */
+  --expense-text: #C93036;
+  --on-income: #0B1220;
+  --on-expense: #0B1220;
+  --on-danger: #FFFFFF;
+  --primary-hover: color-mix(in srgb, var(--primary), #000 8%);
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, var(--surface));
+
+  /* §2.3 Màu danh mục */
+  --cat-eat: #E5484D;
+  --cat-move: #F08A24;
+  --cat-home: #2F6FED;
+  --cat-shop: #9B51E0;
+  --cat-fun: #E255A1;
+  --cat-health: #0E9F6E;
+  --cat-study: #0EA5C6;
+  --cat-other: #7C8594;
+
+  /* §5 Bóng & lớp phủ */
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow-2: 0 6px 16px rgba(16, 24, 40, .12);
+  --shadow-3: 0 16px 40px rgba(16, 24, 40, .18);
+  --scrim: rgba(0, 0, 0, .4);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1216;
+    --surface: #181C22;
+    --surface-2: #222831;
+    --border: #2C333D;
+    --text: #ECEFF3;
+    --text-muted: #9AA4B2;
+
+    --primary: #6B9BFF;
+    --on-primary: #0B1220;
+    --income: #34D399;
+    --expense: #FF7B80;
+    --warning: #F5B544;
+    --danger: #FF6369;
+    --focus: #8DB1FF;
+
+    --income-text: #34D399;
+    --expense-text: #FF7B80;
+    --on-danger: #0B1220;
+    --primary-hover: color-mix(in srgb, var(--primary), #fff 8%);
+
+    --cat-eat: #FF7B80;
+    --cat-move: #FFA94D;
+    --cat-home: #6B9BFF;
+    --cat-shop: #C08BFF;
+    --cat-fun: #FF8CC6;
+    --cat-health: #34D399;
+    --cat-study: #4FD1EC;
+    --cat-other: #A3ACB9;
+
+    --shadow-1: none;
+    --shadow-2: 0 6px 16px rgba(0, 0, 0, .5);
+    --shadow-3: 0 16px 40px rgba(0, 0, 0, .6);
+    --scrim: rgba(0, 0, 0, .6);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0F1216;
+  --surface: #181C22;
+  --surface-2: #222831;
+  --border: #2C333D;
+  --text: #ECEFF3;
+  --text-muted: #9AA4B2;
+
+  --primary: #6B9BFF;
+  --on-primary: #0B1220;
+  --income: #34D399;
+  --expense: #FF7B80;
+  --warning: #F5B544;
+  --danger: #FF6369;
+  --focus: #8DB1FF;
+
+  --income-text: #34D399;
+  --expense-text: #FF7B80;
+  --on-danger: #0B1220;
+  --primary-hover: color-mix(in srgb, var(--primary), #fff 8%);
+
+  --cat-eat: #FF7B80;
+  --cat-move: #FFA94D;
+  --cat-home: #6B9BFF;
+  --cat-shop: #C08BFF;
+  --cat-fun: #FF8CC6;
+  --cat-health: #34D399;
+  --cat-study: #4FD1EC;
+  --cat-other: #A3ACB9;
+
+  --shadow-1: none;
+  --shadow-2: 0 6px 16px rgba(0, 0, 0, .5);
+  --shadow-3: 0 16px 40px rgba(0, 0, 0, .6);
+  --scrim: rgba(0, 0, 0, .6);
+
+  color-scheme: dark;
+}
+
+/* Token không đổi theo chế độ sáng/tối */
+:root {
+  /* §3 Chữ */
+  --font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-display: 32px;
+  --lh-display: 40px;
+  --fs-h1: 20px;
+  --lh-h1: 28px;
+  --fs-h2: 16px;
+  --lh-h2: 24px;
+  --fs-body: 15px;
+  --lh-body: 22px;
+  --fs-small: 13px;
+  --lh-small: 18px;
+  --fs-button: 16px;
+  --lh-button: 24px;
+
+  /* §4 Khoảng cách (cơ sở 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+
+  /* §5 Bo góc */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* §5 Lớp */
+  --z-content: 0;
+  --z-bar: 10;
+  --z-fab: 20;
+  --z-scrim: 30;
+  --z-dialog: 40;
+  --z-toast: 50;
+
+  /* §8 Chuyển động */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+}
